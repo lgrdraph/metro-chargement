@@ -5,7 +5,8 @@
 <title>Métro 2033 RP - Chargement</title>
 <!--
   Écran de chargement du serveur Métro 2033 RP (Garry's Mod)
-  Vidéo en boucle avec son son ; le volume suit celui du joueur.
+  Vidéo de la cabine (la même que le menu Échap) en boucle : à la fin du
+  chargement, le menu s'ouvre sur le même décor. Le volume suit celui du joueur.
   À mettre dans server.cfg :  sv_loadingurl "https://ADRESSE-DE-LA-PAGE/"
 -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
@@ -15,7 +16,7 @@
   /* Vidéo plein écran (image fixe si la vidéo ne se lit pas) */
   #fond {
     position: fixed; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; background: #0f0f12 url("secours2.jpg") center / cover no-repeat;
+    object-fit: cover; background: #0f0f12 url("cabine.jpg") center / cover no-repeat;
   }
 
 
@@ -29,15 +30,15 @@
 </head>
 <body>
 
-<video id="fond" autoplay loop playsinline poster="secours2.jpg">
-  <source src="fond2.webm" type="video/webm">
-  <source src="fond2.mp4" type="video/mp4">
+<video id="fond" autoplay loop playsinline poster="cabine.jpg">
+  <source src="cabine.webm" type="video/webm">
+  <source src="cabine.mp4" type="video/mp4">
 </video>
-<div id="nom">[FR] Metro 2033 RP | SeriousRP | En construction</div>
+<div id="nom">[FR] Projet Metro 2033 RP - LGM | SeriousRP | En construction</div>
 
 <script>
   // Seule la vidéo est affichée : Garry's Mod montre déjà sa propre barre de chargement.
-  var VOLUME_MAX = 0.6;   // volume de la vidéo (multiplié par le volume du joueur)
+  var VOLUME_MAX = 0.3;   // même volume que la cabine du menu (multiplié par le volume du joueur)
   var video = document.getElementById("fond");
   video.volume = 0.5 * VOLUME_MAX;
   // Un navigateur classique (Chrome…) bloque la lecture avec le son : on relance sans le son.
