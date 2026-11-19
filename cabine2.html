@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Métro 2033 RP - Cabine</title>
+<!--
+  Fond animé de la cabine (menu Échap du serveur Métro 2033 RP).
+  Ouvert par le jeu derrière les plaques du menu (addon metro_menu).
+  ?vol=0.30 : volume du bruit du train (0 à 1)
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+  video {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity .4s;
+  }
+</style>
+</head>
+<body>
+<video id="v" autoplay loop playsinline>
+  <source src="cabine2.webm" type="video/webm">
+  <source src="cabine2.mp4" type="video/mp4">
+</video>
+<script>
+  var v = document.getElementById("v");
+  var m = /[?&]vol=([0-9.]+)/.exec(location.search);
+  var vol = m ? parseFloat(m[1]) : 0.3;
+  v.volume = Math.max(0, Math.min(1, isNaN(vol) ? 0.3 : vol));
+  // Quand la vidéo tourne : elle apparaît en fondu et prévient le jeu
+  v.addEventListener("playing", function () {
+    v.style.opacity = 1;
+    if (window.metro && metro.pret) metro.pret();
+  });
+  // Un navigateur classique bloque le son : on relance sans le son
+  var essai = v.play();
+  if (essai && essai.catch) essai.catch(function () { v.muted = true; v.play(); });
+</script>
+</body>
+</html>
