@@ -38,13 +38,23 @@
 
 <script>
   // Seule la vidéo est affichée : Garry's Mod montre déjà sa propre barre de chargement.
-  var VOLUME_MAX = 0.3;   // même volume que la cabine du menu (multiplié par le volume du joueur)
+  var VOLUME_MAX = 0.15;   // même volume que la cabine du menu (multiplié par le volume du joueur)
   var video = document.getElementById("fond");
-  video.volume = 0.5 * VOLUME_MAX;
+  video.volume = VOLUME_MAX;
   // Un navigateur classique (Chrome…) bloque la lecture avec le son : on relance sans le son.
   // Dans Garry's Mod, la vidéo démarre directement avec son son.
   var essai = video.play();
-  if (essai && essai.catch) essai.catch(function () { video.muted = true; video.play(); });
+  if (essai && essai.catch) essai.catch(function () { video.muted = true; video.play(); essayerLeSon(); });
+
+  // Si le son a été coupé au démarrage, on réessaie de l'activer toutes les 2 secondes
+  function essayerLeSon() {
+    var t = setInterval(function () {
+      if (!video.muted) { clearInterval(t); return; }
+      video.muted = false;
+      var p = video.play();
+      if (p && p.catch) p.catch(function () { video.muted = true; video.play(); });
+    }, 2000);
+  }
 
   // Appelée par Garry's Mod au début du chargement : le volume suit celui du joueur
   function GameDetails(nomServeur, urlServeur, carte, maxJoueurs, steamid, modeDeJeu, volume, langue) {
