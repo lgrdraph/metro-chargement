@@ -27,7 +27,8 @@
   }
 
   /* Bloc du bas */
-  #bas { position: fixed; left: 4vw; right: 4vw; bottom: 5vh; }
+  /* (à droite, on laisse la place au petit cadre gris que Garry's Mod affiche toujours) */
+  #bas { position: fixed; left: 4vw; right: calc(4vw + 330px); bottom: 5vh; }
   #panneau {
     padding: 1.4vh 1.2vw;
     background: rgba(15,15,18,.84); border: 1px solid #55555a; border-radius: 6px;
@@ -71,6 +72,7 @@
   var video = document.getElementById("fond");
   var progression = 0;    // ne recule jamais
   var total = 0;
+  var etapeMax = 0;       // étape la plus avancée déjà affichée
 
   video.volume = 0.5 * VOLUME_MAX;
   // Si la vidéo ne peut pas être lue, l'image de la cabine (poster / fond) reste affichée
@@ -97,7 +99,7 @@
     [/client info sent/i,        "Informations envoyées",               74],
     [/received all lua/i,        "Scripts reçus",                       90],
     [/lua/i,                     "Chargement des scripts…",             82],
-    [/precach|loading|spawn/i,   "Entrée dans le métro…",               95]
+    [/precach/i,                 "Entrée dans le métro…",               95]
   ];
 
   function texte(id, t) { document.getElementById(id).textContent = t; }
@@ -112,6 +114,8 @@
     var s = String(statut || "");
     for (var i = 0; i < ETAPES.length; i++) {
       if (ETAPES[i][0].test(s)) {
+        if (ETAPES[i][2] < etapeMax) return; // pas de retour en arrière dans le texte
+        etapeMax = ETAPES[i][2];
         texte("etape", ETAPES[i][1]);
         avancer(ETAPES[i][2]);
         if (ETAPES[i][2] >= 62) texte("fichier", "");
