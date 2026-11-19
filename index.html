@@ -17,14 +17,13 @@
   /* Vidéo plein écran (image de la cabine si la vidéo ne se lit pas) */
   #fond {
     position: fixed; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; background: #0f0f12 url("secours.jpg") center / cover no-repeat;
+    object-fit: cover; background: #0f0f12 url("secours2.jpg") center / cover no-repeat;
   }
-  /* Assombrit le bas et les bords pour que le texte reste lisible (vidéo très claire) */
+  /* Assombrit un peu le bas pour que la barre reste lisible */
   #voile {
     position: fixed; inset: 0; pointer-events: none;
     background:
-      linear-gradient(to top, rgba(10,10,12,.92) 0%, rgba(10,10,12,.55) 26%, rgba(10,10,12,0) 50%),
-      radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%);
+      linear-gradient(to top, rgba(10,10,12,.7) 0%, rgba(10,10,12,0) 30%);
   }
 
   /* Bloc du bas */
@@ -50,9 +49,9 @@
 </head>
 <body>
 
-<video id="fond" autoplay loop playsinline poster="secours.jpg">
-  <source src="fond.webm" type="video/webm">
-  <source src="fond.mp4" type="video/mp4">
+<video id="fond" autoplay loop playsinline poster="secours2.jpg">
+  <source src="fond2.webm" type="video/webm">
+  <source src="fond2.mp4" type="video/mp4">
 </video>
 <div id="voile"></div>
 
@@ -76,7 +75,9 @@
   video.volume = 0.5 * VOLUME_MAX;
   // Si la vidéo ne peut pas être lue, l'image de la cabine (poster / fond) reste affichée
   var essai = video.play();
-  if (essai && essai.catch) essai.catch(function () {});
+  // Un navigateur classique (Chrome…) bloque la lecture avec le son : on relance sans le son.
+  // Dans Garry's Mod, la vidéo démarre directement avec son son.
+  if (essai && essai.catch) essai.catch(function () { video.muted = true; video.play(); });
 
   function avancer(p) {
     p = Math.max(0, Math.min(100, p));
