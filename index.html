@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Métro 2033 RP - Chargement</title>
+<!--
+  Écran de chargement du serveur Métro 2033 RP (Garry's Mod)
+  Le jeu appelle tout seul les fonctions GameDetails, SetStatusChanged,
+  SetFilesTotal, SetFilesNeeded et DownloadingFile pendant la connexion.
+  À mettre dans server.cfg :  sv_loadingurl "https://ADRESSE-DE-LA-PAGE/"
+-->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0f0f12; }
+  body { font-family: "Roboto", Arial, sans-serif; color: #fff; }
+
+  /* Vidéo plein écran (image de la cabine si la vidéo ne se lit pas) */
+  #fond {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; background: #0f0f12 url("secours.jpg") center / cover no-repeat;
+  }
+  /* Assombrit le bas et les bords pour que le texte reste lisible (vidéo très claire) */
+  #voile {
+    position: fixed; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(to top, rgba(10,10,12,.92) 0%, rgba(10,10,12,.55) 26%, rgba(10,10,12,0) 50%),
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* Bloc du bas */
+  #bas { position: fixed; left: 4vw; right: 4vw; bottom: 5vh; }
+  #panneau {
+    padding: 1.4vh 1.2vw;
+    background: rgba(15,15,18,.84); border: 1px solid #55555a; border-radius: 6px;
+  }
+  #ligne { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; }
+  #etape { font-size: 1.05vw; }
+  #pourcent { font-size: 1.05vw; color: #6ea5dc; }
+  #fichier {
+    margin-top: .5vh; font-size: .8vw; color: #8d8d92; height: 1.2em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #barre { margin-top: 1vh; height: 8px; background: #1c1c20; border: 1px solid #55555a; border-radius: 4px; overflow: hidden; }
+  #remplissage {
+    width: 0%; height: 100%; background: #1e4673;
+    box-shadow: inset 0 0 0 1px #6ea5dc, 0 0 10px rgba(110,165,220,.6);
+    transition: width .6s ease;
+  }
+</style>
+</head>
+<body>
+
+<video id="fond" autoplay loop playsinline poster="secours.jpg">
+  <source src="fond.webm" type="video/webm">
+  <source src="fond.mp4" type="video/mp4">
+</video>
+<div id="voile"></div>
+
+<div id="bas">
+  <div id="panneau">
+    <div id="ligne">
+      <div id="etape">Connexion au serveur…</div>
+      <div id="pourcent">0 %</div>
+    </div>
+    <div id="fichier"></div>
+    <div id="barre"><div id="remplissage"></div></div>
+  </div>
+</div>
+
+<script>
+  var VOLUME_MAX = 0.6;   // volume de la vidéo (multiplié par le volume du joueur)
+  var video = document.getElementById("fond");
+  var progression = 0;    // ne recule jamais
+  var total = 0;
+
+  video.volume = 0.5 * VOLUME_MAX;
+  // Si la vidéo ne peut pas être lue, l'image de la cabine (poster / fond) reste affichée
+  var essai = video.play();
+  if (essai && essai.catch) essai.catch(function () {});
+
+  function avancer(p) {
+    p = Math.max(0, Math.min(100, p));
+    if (p < progression) return;
+    progression = p;
+    document.getElementById("remplissage").style.width = p.toFixed(1) + "%";
+    document.getElementById("pourcent").textContent = Math.floor(p) + " %";
+  }
+
+  // Étapes du jeu traduites, avec la progression atteinte à chaque étape
+  var ETAPES = [
+    [/retrieving server info/i,  "Récupération des infos du serveur…", 3],
+    [/workshop complete/i,       "Contenu du Workshop prêt",            60],
+    [/workshop|downloading/i,    "Téléchargement du contenu…",          8],
+    [/mounting/i,                "Préparation des addons…",             62],
+    [/sending client info/i,     "Envoi de tes informations…",          70],
+    [/client info sent/i,        "Informations envoyées",               74],
+    [/received all lua/i,        "Scripts reçus",                       90],
+    [/lua/i,                     "Chargement des scripts…",             82],
+    [/precach|loading|spawn/i,   "Entrée dans le métro…",               95]
+  ];
+
+  function texte(id, t) { document.getElementById(id).textContent = t; }
+
+  // --- Fonctions appelées par Garry's Mod ---
+  function GameDetails(nomServeur, urlServeur, carte, maxJoueurs, steamid, modeDeJeu, volume, langue) {
+    if (typeof volume === "number") video.volume = Math.max(0, Math.min(1, volume)) * VOLUME_MAX;
+    avancer(2);
+  }
+
+  function SetStatusChanged(statut) {
+    var s = String(statut || "");
+    for (var i = 0; i < ETAPES.length; i++) {
+      if (ETAPES[i][0].test(s)) {
+        texte("etape", ETAPES[i][1]);
+        avancer(ETAPES[i][2]);
+        if (ETAPES[i][2] >= 62) texte("fichier", "");
+        return;
+      }
+    }
+    texte("etape", s);
+  }
+
+  function SetFilesTotal(n) { total = Number(n) || 0; }
+
+  function SetFilesNeeded(restants) {
+    restants = Number(restants) || 0;
+    if (total > 0) {
+      // Les téléchargements vont de 8 % à 60 %
+      avancer(8 + 52 * (1 - restants / total));
+      texte("etape", "Téléchargement du contenu… (" + (total - restants) + " / " + total + ")");
+    }
+  }
+
+  function DownloadingFile(nom) {
+    var court = String(nom || "").split(/[\\/]/).pop();
+    texte("fichier", court);
+  }
+</script>
+</body>
+</html>
